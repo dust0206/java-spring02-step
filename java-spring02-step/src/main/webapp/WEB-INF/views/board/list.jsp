@@ -19,10 +19,20 @@
 <body>
 <%@ include file="./include/menu.jsp" %>
 <h2>게시판</h2>
-<form name="form1" method="post">
-	
+
+<!-- 	검색폼 -->
+<form name="form1" method="post" action="${path }/board/list.do ">
+	<select name="search_option">
+		<option value="all">이름+내용+제목</option>
+		<option value="writer">이름</option>
+		<option value="content" >내용</option>
+		<option value="title" selected>타이틀</option>
+	</select>
+	<input name="keyword">
+	<input type="submit" value="조회">
+	<button type="button" id="btnWrite">글쓰기</button>
 </form>
-<button type="button" id="btnWrite">글쓰기</button>
+${count }개의 게시물이 있읍니다.
 	<table border="1" style="width:800px">
 		<tr>
 			<th>번호</th>

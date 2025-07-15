@@ -9,7 +9,9 @@ public interface BoardDAO {
 	public BoardVO read(int bno) throws Exception;
 	public void update(BoardVO vo) throws Exception;
 	public void delete(int bno) throws Exception;
-	public List<BoardVO> listAll() throws Exception;
+	public List<BoardVO> listAll(String search_option, String keyword) throws Exception;
 	public void increaseViewCount(int bno) throws Exception;
+	// 레코드 갯수 계산
+	public int countArticle(String search_option, String keyword) throws Exception;
 
 }

@@ -22,9 +22,9 @@ public class BoardServiceImpl implements BoardService {
 	private static final Logger log = LoggerFactory.getLogger(BoardServiceImpl.class);
 
 	@Override
-	public List<BoardVO> listAll() throws Exception {
+	public List<BoardVO> listAll(String search_option, String keyword) throws Exception {
 		log.info("# listAll() #");
-		return boardDAO.listAll();
+		return boardDAO.listAll(search_option, keyword);
 	}
 
 	@Override
@@ -94,6 +94,13 @@ public class BoardServiceImpl implements BoardService {
 			boardDAO.increaseViewCount(bno);
 			session.setAttribute("update_time_"+bno, current_time);
 		}
+	}
+
+	@Override
+	public int countArticle(String search_option, String keyword) throws Exception {
+		log.info("# countArticle() #");
+		
+		return boardDAO.countArticle(search_option, keyword);
 	}
 	
 	

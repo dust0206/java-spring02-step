@@ -3,7 +3,6 @@ package com.example.spring02.board.controller;
 import java.util.List;
 
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.example.spring02.board.model.dto.BoardVO;
@@ -30,14 +28,23 @@ public class BoardController {
 	private static final Logger log = LoggerFactory.getLogger(BoardController.class);
 	
 	@RequestMapping("board/list.do")	// /board/list.do
-	public ModelAndView list() throws Exception {
+	// @RequestParam(defaultValue="title") - 기본값 할당
+	public ModelAndView list(Model model, @RequestParam(defaultValue = "title") String search_option, @RequestParam(defaultValue="") String keyword) throws Exception {
 		log.info("# list() #");
-		List<BoardVO> list = boardService.listAll();
+		// 레코드 갯수 계산
+//		int count = boardService.countArticle(search_option, keyword);
+		
+		List<BoardVO> list = boardService.listAll(search_option, keyword);
+		
+//		model.addAttribute("list", list);
+//		return "list";
 		
 		// 모델과 뷰
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName("board/list");	// 뷰를 list.jsp로 설정
 		mav.addObject("list", list);	// 데이터 저장
+//		mav.addObject("count", count);	// 데이터 카운트
+		mav.addObject("count", list.size());	// 데이터 카운트
 		
 		return mav;		// list.jsp 로 List가 전달됨
 	}

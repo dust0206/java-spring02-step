@@ -7,9 +7,17 @@
 <!--  다른 mapper와 중복되지 않도록 네임스페이스 기재 -->
 <mapper namespace="board">
 	
+	<!-- 레코드 갯수 계산 -->
+	<select id="countArticle" resultType="">
+		select count(*) from tbl_board
+		<include refid="search" />
+	</select>
+	
 	<select id="listAll" resultType="com.example.spring02.board.model.dto.BoardVO">
 		select bno, title, content, writer, regdate, viewcnt
 		from tbl_board
+		<!-- 이 부분에 where절이 삽입됨 -->
+		<include refid="search" />
 		order by bno desc, regdate desc
 	</select>
 	
@@ -52,6 +60,22 @@
 		where 
 			bno = #{bno } 
 	</delete>
+	
+	<!-- sql code 조각 -->
+	<sql id="search">
+		<choose>
+			<when test="#{search_option != 'all'">
+				<!-- 전체검색이 아닐 때 -->
+				where writer like '%' || #{keyword } || '%'
+				 	  or content like '%' ||  #{keyword } || '%'
+				 	  or title like '%' || #{keyword } || '%'
+			</when>
+			<otherwise>
+				<!-- 전체검색 -->
+				where ${search_option } like '%' || #{keyword } || '%'
+			</otherwise>
+		</choose>
+	</sql>
 
 
 </mapper>

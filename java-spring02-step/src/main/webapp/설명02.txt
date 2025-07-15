@@ -99,10 +99,10 @@ insert.do => 게시물 등록 => list.do(redirect)
 		session.setAttribute("update_time_1", "10:36:10");
 		session.getAttribute("update_time_1");				
 							
+	* 400 에러 : 파라미터 누락						
+	HTTP 상태 400 - Required String parameter 'search_option' is not present -  search_option의 값이 필요하다						
 							
-							
-							
-							
+	
 							
 							
 							

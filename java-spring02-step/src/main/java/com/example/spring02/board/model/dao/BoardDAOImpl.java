@@ -1,6 +1,8 @@
 package com.example.spring02.board.model.dao;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -48,9 +50,13 @@ public class BoardDAOImpl implements BoardDAO {
 	}
 
 	@Override
-	public List<BoardVO> listAll() throws Exception {
+	public List<BoardVO> listAll(String search_option, String keyword) throws Exception {
 		log.info("# listAll #");
-		return  sqlSession.selectList("board.listAll");
+		Map<String, String> map = new HashMap<>();
+		map.put("search_option", search_option);
+		map.put("keyword", keyword);
+		
+		return  sqlSession.selectList("board.listAll", map);
 	}
 
 	@Override
@@ -58,6 +64,16 @@ public class BoardDAOImpl implements BoardDAO {
 		log.info("# increaseViewCount #");
 
 		sqlSession.update("board.increaseViewCount", bno);
+	}
+
+	@Override
+	public int countArticle(String search_option, String keyword) throws Exception {
+		log.info("# increaseViewCount #");
+		Map<String, String> map = new HashMap<>();
+		map.put("search_option", search_option);
+		map.put("keyword", keyword);
+		
+		return sqlSession.selectOne("board.countArticle", map);
 	}
 	
 	
