@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+		
+<!-- java Resource/src/main/resources/mappers/member/member-mapper.xml		 -->
+<!--  다른 mapper와 중복되지 않도록 네임스페이스 기재 -->
+<mapper namespace="board">
+	
+	<select id="listAll" resultType="com.example.spring02.board.model.dto.BoardVO">
+		select bno, title, content, writer, regdate, viewcnt
+		from tbl_board
+		order by bno desc, regdate desc
+	</select>
+	
+<!-- 	<insert id="insert" parameterType="com.example.spring02.board.model.dto.BoardVO"> -->
+	<insert id="insert" >
+		insert into 
+			tbl_board (bno, title, content, writer)
+    	values (
+              (select nvl(max(bno)+1, 1) from tbl_board)
+            , #{title }
+            , #{content }
+            , #{writer }
+		)
+	</insert>
+	
+	<select id="view"  resultType="com.example.spring02.board.model.dto.BoardVO">
+		select * from tbl_board
+		where bno = #{bno }
+	</select>
+	
+	<update id="increaseViewCount" >
+		update tbl_board 
+		set 
+			viewcnt = viewcnt + 1 
+		where bno = #{bno }
+	</update>
+	
+	<update id="updateArticle">
+		update tbl_board
+		set
+			  writer = #{writer }
+			, title = #{title }
+			, content = #{content }
+		where bno = #{bno }
+	</update>
+	
+	<delete id="deleteArticle">
+		delete from 
+			tbl_board 
+		where 
+			bno = #{bno } 
+	</delete>
+
+
+</mapper>

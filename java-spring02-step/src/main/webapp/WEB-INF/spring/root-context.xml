@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	
+	<!-- 1. hikariCP 설정 -->
+	
+	<!-- 1_1. spring에 의한 연결 설정 -->
+	<bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
+		<!--  드라이버 클래스 이름이 변경됨 -->
+<!-- 		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" /> -->
+		<property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy" />
+		<!--  연결문자열에 log4jdbc가 추가됨 -->
+<!-- 		<property name="jdbcUrl" value="jdbc:oracle:thin:@//127.0.0.1:1521/XE" /> -->
+		<property name="jdbcUrl" value="jdbc:log4jdbc:oracle:thin:@//127.0.0.1:1521/XE" />
+		<property name="username" value="spring" />
+		<property name="password" value="spring" />
+	</bean>
+	
+	<!-- 1_2. hikari Data source -->
+	<bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+		<constructor-arg ref="hikariConfig" />
+		<!-- 추가 옵션 지정 -->
+		<!-- 
+			connection-timeout: 30000  # 커넥션 타임아웃 설정 (ms)
+			maximum-pool-size: 10  # 커넥션 풀의 최대 크기 설정
+			minimum-idle: 5  # 유휴 커넥션을 유지할 최소한의 커넥션 수 설정
+			idle-timeout: 600000  # 유휴 커넥션의 최대 유지 시간 설정 (ms)
+			pool-name: MyHikariCP  # 커넥션 풀의 이름 설정
+			validation-timeout: 5000  # 커넥션 유효성 검사 타임아웃 설정 (ms)
+			auto-commit: true  # 자동 커밋 모드 설정
+		 -->
+	</bean>	
+	
+	<!-- 1_3. SqlSessionFactory 객체 주입 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<!-- mybatis 환경설정 파일 참조 -->
+		<property name="configLocation" value="classpath:/mybatis-config.xml" />
+		<!-- mapper의 위치를 설정 -->
+		<!-- 
+			classpath : src/main/resources를 말함
+			** : 모든 하위 디렉토리 의미 
+			* : 모든 파일 네임 
+		 -->
+		<property name="mapperLocations" value="classpath:mappers/**/*-mapper.xml"/>
+	</bean>
+	
+	<!-- 1_4. SqlSession 객체 주입-->
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate" destroy-method="clearCache">  <!--  auto close -->
+		<constructor-arg name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
+	
+<!-- 	<mybatis-spring:scan base-package="com.example.spring02"/> -->
+</beans>

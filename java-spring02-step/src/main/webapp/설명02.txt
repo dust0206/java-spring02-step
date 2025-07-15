@@ -1,0 +1,118 @@
+* 회원관리
+
+	패키지 추가
+	ch06.controller
+	ch06.service
+	ch06.model.dao
+	ch06.model.dto
+	
+	public interface MemberDAO {
+	}
+	
+	public class MemberDAOImpl implements MemberDAO {
+	}
+	
+	
+	회원목록
+	
+				컨트롤러(흐름제어)
+	
+	
+	
+* 스프링 빈(bean)의 종류
+@Controller - 컨토롤러 빈
+@Service	- 서비스 빈
+@Repository	- dao 빈
+	
+	
+	06. spring_mybatis 회원 상세 정보부터 시작
+	
+	
+	-- 비밀번호가 맞으면 수정, 삭제
+	select * from tbl_member
+	where userid='kim' and userpw='1234';
+	
+	
+* 스프링 환경 설정
+Java Resource
+	src/main/java 클래스들
+	src/main/resources
+		mybatis mappers, 로그 관련 파일들	
+	src/test/java
+		테스트 케이스 클래스들
+	src/test/resources
+		테스트 관련 리소스
+
+src/main/webapp
+	Dynanic Web Project 의 WebContent에 해당
+	WEB-INF : 시스템 디렉토리
+		(외부에서 접근할 수 없음)
+	spring : 스프링 설정 파일
+		root-context.xml
+			servlet 이외의 설정 
+				- DB연결
+				- 
+		servlet-context.xml
+			서블릿 관련 설정
+				- 서블릿 맵핑
+				- view Resolver 
+				- 리소스
+				- Controller, DAO, Service bean
+				
+	web.xml 웹프로젝트의 배치 기술서
+	
+<스프링 설정>
+	1. pom.xml의  <properties> 이하 교체
+	2. src/main/resources 파일 복사
+	3. servlet-context.xml 교체
+		스프링에서 관리하는 bean의 경로
+		<context:component-scan base-package="패키지 이름" />
+	4. root-context.xml 교체
+		DBCP(DataBase Connection Pool) 설정
+	
+* 메이븐의 저장소
+	http:/mavrepository.com  
+
+글쓰기
+write.do => write.jsp
+insert.do => 게시물 등록 => list.do(redirect)
+
+	
+* 기본 게시판
+	./board/boardlist.do => BoardController.java (컨트롤러)
+							서비스
+							BoardService.java 인터페이스
+							BoardServiceImpl.java 구현 클래스
+								Model
+							BoardVO.java	데이터 저장소
+							BoardDAO.java	인터페이스
+							BoardDAOImpl.java	구현클래스
+							boardMapper.xml		mybatis mapper
+								view
+							boardList.jsp
+							boardView.jsp
+							boardUpdate.jsp
+							boardDelete.jsp
+							
+	세션에 저장 : 세션.setAttribute(key, value)
+	세션에서 읽어오기 : 세션.getAtribute(key)			
+		session.setAttribute("update_time_1", "10:36:10");
+		session.getAttribute("update_time_1");				
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+		
+
+	

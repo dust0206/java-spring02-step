@@ -1,0 +1,138 @@
+
+
+* home.jsp 실행과정
+
+web.xml - 웹프로젝트의 배치 기술서
+	deploy descriptor
+	웹프로젝트의 환경 설정 파일
+
+/WEB-INF/spring/root-context.xml
+	스프링 환경설정 파일
+	
+DispathcerServlet(스프링에 내장된 컨트롤러)로 이동
+	/WEB-INF/spring/appServlet/servlet-context.xml 참조
+		xml 파일 안에 정의된 객체들을 로딩함
+		HomeController.jav 로딩됨
+
+<bean id="참조변수" class="클래스 이름">
+<bean id="homeController" class="com.example.spring02.HomeController">
+	=> HomeController homeController = new HomeController();
+		
+
+* mybatis 설정 (root-context.xml)
+
+	DriverManagerDataSource : DB연동
+	SqlSessionFactoryBean : SqlSessionTemplate 객체 생성
+	SqlSessionTemplate	: SqlSession 객체 생성
+	
+* 메이븐 에러 발생시 해결 방법
+1. Java Build Path에서 jdk 버전을 1.8로 조정
+2. Project Facets에서 jdk 버전을 1.8로 조정
+3. pom.xml에서 spring version 조정
+4. 메이븐 저장소(.m2) 삭제, sts 재시작
+
+oracle 관리자 계정 으로 접속 (12c)
+	sqlplus system/1234
+	
+	# 11g와 호환
+	SQL> alter session set "_ORACLE_SCRIPT"=true;
+	
+	# 테이블 스페이스 생성
+	create tablespace spring
+	datafile 'd:/ora_data/spring.dbf' size 50m -- 50M
+	autoextend on   -- 자동증가
+	next 10m		-- 자동증가 10M씩
+	maxsize unlimited;
+	
+	# 사용자 계정 만들기
+	create user spring identified by 1234
+	default tablespace spring;
+	
+	# 사용 권한 부여
+	grant connect, resource, dba to spring;
+	
+# 로깅툴(SLF4J)
+	* 로깅툴 사용하는 이유
+		- System.out.println() 명령어는 IO 리소스를 많이 사용하여 시스템이 느려질 수 있음
+		- 로그를 파일로 저장하여 분석할 필요가 있음
+		
+	* 로깅툴의 종류
+		- commons-logging : 스프링3에서 사용하던 로깅툴
+		- logrj : 효율적인 메모리 관리로 그동안 많이 사용 되었음
+		- logback : log4j보다 성능이 더 우수하여 최근에 많이 사용되고 있음
+		
+	* SLF4J : logback을 사용하기 위한 인터페이스		
+	
+	* 설정 방법
+	
+	1. pom.xml의 slf4j-version을 1.7.21로 수정
+		<org.slf4j-version>1.6.6</org.slf4j-version>  =>  <org.slf4j-version>1.7.21</org.slf4j-version>
+	
+	2. pom.xml에 라이브러리 추가
+		<!-- logback 로깅 관련 -->
+		<!-- https://mvnrepository.com/artifact/org.slf4j/jcl-over-slf4j -->
+		<dependency>
+		    <groupId>org.slf4j</groupId>
+		    <artifactId>jcl-over-slf4j</artifactId>
+		    <version>1.7.21</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
+		<dependency>
+		    <groupId>ch.qos.logback</groupId>
+		    <artifactId>logback-classic</artifactId>
+		    <version>1.1.7</version>
+		    <scope>compile</scope>
+		</dependency>
+		
+	3. 
+	
+	4. 로그를 수집할 클래스에 변수 선언
+		private static final Logger log = LoggerFactory.getLogger(클래스이름.class);	
+		
+		private : 외부에서 로그를 가로채지 못하도록 하기 위해서
+		static final : 로그 내용이 바뀌지 않으므로
+		
+	5. 로그를 수집할 Method에서 로그 수집 명령어 호출
+	
+	log.info("로그 타이틀", 출력할 값);
+	
+	
+	* 로그의 level
+	1. Debug : Debug, Info, Warn, Error 포함
+	2. Info : Info, Warn, Error 포함
+	3. Warn : Warn, Error 포함 
+	4. Error : Error만 포함 
+	
+	
+	* bean을 자동으로 검색해서 등록
+	<!--  컴포넌트(bean) 자동 검색해서 객체 생성 -->
+	<context:component-scan base-package="기준 패키지 경로" />
+	
+	@Controller : 컨트롤러 빈
+	@Repository : dao bean - 데이터베이스 관련 작업
+	@Service : 서비스 bean - 비지니스 로직 
+	
+	@Inject : 의존관계주입
+	
+	
+	* json 처리를 위한 라이브러리
+	<!-- json 라이브러리 -->
+	<dependency>
+	    <groupId>com.fasterxml.jackson.core</groupId>
+	    <artifactId>jackson-databind</artifactId>
+	    <version>2.5.0</version>
+	</dependency>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

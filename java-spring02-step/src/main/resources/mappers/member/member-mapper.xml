@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+		
+<!-- java Resource/src/main/resources/mappers/member/member-mapper.xml		 -->
+<!--  다른 mapper와 중복되지 않도록 네임스페이스 기재 -->
+<mapper namespace="member">
+	<select id="memberList" resultType="com.example.spring02.part1_ch06.model.dto.MemberVO">
+		select * 
+		from tbl_member
+		order by username
+	</select>
+	
+<!-- 	회원 정보 입력 -->
+	<insert id="insertMember">
+		insert into 
+			tbl_member(userid, userpw, username, email) 
+		values (#{userid}, #{userpw}, #{username}, #{email})
+	</insert>
+	
+<!-- 	회원 정보 보기 -->
+	<select id="viewMember" resultType="com.example.spring02.part1_ch06.model.dto.MemberVO">
+		select * 
+		from tbl_member
+		where userid=#{userid}
+	</select>
+	
+<!-- 	회원 정보 수정 -->
+	<update id="updateMember">
+		update tbl_member
+		set
+			  userpw = #{userpw }
+			, username = #{username }
+			, email = #{email } 
+			, updatedate = sysdate
+		where userid = #{userid }
+	</update>
+	
+<!-- 	회원 정보 삭제 -->
+	<delete id="deleteMember">
+		delete 
+		from tbl_member
+		<where> 
+			userid = #{userid}
+			and userpw = #{userpw}
+		</where> 
+	</delete>
+	
+	
+	<select id="checkPw" resultType="int">
+		select
+			count(*)
+		from 
+			tbl_member
+		where
+			userid = #{userid } and userpw=#{userpw }
+	</select>
+
+</mapper>	
