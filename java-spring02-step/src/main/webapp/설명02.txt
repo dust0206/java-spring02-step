@@ -103,6 +103,7 @@ insert.do => 게시물 등록 => list.do(redirect)
 	HTTP 상태 400 - Required String parameter 'search_option' is not present -  search_option의 값이 필요하다						
 							
 	
+	18. 26:58						
 							
 							
 							

@@ -8,7 +8,7 @@
 <mapper namespace="board">
 	
 	<!-- 레코드 갯수 계산 -->
-	<select id="countArticle" resultType="">
+	<select id="countArticle" resultType="int">
 		select count(*) from tbl_board
 		<include refid="search" />
 	</select>
@@ -64,7 +64,7 @@
 	<!-- sql code 조각 -->
 	<sql id="search">
 		<choose>
-			<when test="#{search_option != 'all'">
+			<when test="search_option == 'all'">
 				<!-- 전체검색이 아닐 때 -->
 				where writer like '%' || #{keyword } || '%'
 				 	  or content like '%' ||  #{keyword } || '%'
