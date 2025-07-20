@@ -11,6 +11,9 @@
 	</head>
 <body>
 <%@ include file="include/menu.jsp" %><br>
- ${message }
+<c:if test="${message == 'success' }">
+	<h2>${sessionScope.username }(${sessionScope.userid })님 환영합니다.</h2>
+</c:if>
+ ${message }<br>
 </body>
 </html>

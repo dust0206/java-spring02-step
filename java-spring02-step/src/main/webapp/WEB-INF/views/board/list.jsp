@@ -23,16 +23,16 @@
 <!-- 	검색폼 -->
 <form name="form1" method="post" action="${path }/board/list.do ">
 	<select name="search_option">
-		<option value="all">이름+내용+제목</option>
-		<option value="writer">이름</option>
-		<option value="content" >내용</option>
-		<option value="title" selected>타이틀</option>
+		<option value="all" ${map.search_option == 'all' ? 'selected':'' }>이름+내용+제목</option>
+		<option value="writer" ${map.search_option == 'writer' ? 'selected':'' }>이름</option>
+		<option value="content" ${map.search_option == 'content' ? 'selected':'' }>내용</option>
+		<option value="title" ${map.search_option == 'title' ? 'selected':'' }>타이틀</option>
 	</select>
-	<input name="keyword">
-	<input type="submit" value="조회">
+	<input name="keyword" value="${map.keyword }">
+	<input type="submit" value="조회" >
 	<button type="button" id="btnWrite">글쓰기</button>
 </form>
-${count }개의 게시물이 있읍니다.
+${map.count }개의 게시물이 있읍니다.
 	<table border="1" style="width:800px">
 		<tr>
 			<th>번호</th>
@@ -41,7 +41,7 @@ ${count }개의 게시물이 있읍니다.
 			<th>날짜</th>
 			<th>조회수</th>
 		</tr>
-		<c:forEach var="vo" items="${list }">
+		<c:forEach var="vo" items="${map.list }">
 		<tr>
 			<td>${vo.bno }</td>
 			<td><a href="${path }/board/view.do?bno=${vo.bno }">${vo.title }</a></td>
