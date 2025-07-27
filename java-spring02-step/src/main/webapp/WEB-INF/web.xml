@@ -56,7 +56,7 @@
 	
 	<!-- 세션 유효시간 설정(분단위) -->
 	<sesson-config>
-		<session-timeout>20</session-timeout>	
+		<session-timeout>20</session-timeout> 	
 	</sesson-config>
 
 </web-app>
