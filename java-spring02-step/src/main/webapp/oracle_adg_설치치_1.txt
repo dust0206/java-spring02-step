@@ -1,0 +1,216 @@
+참고 url
+
+https://retto9522.tistory.com/75
+
+
+1. 시스템 요구사항
+
+	메모리 확인
+		# grep MemTotal /proc/meminfo 
+
+	SWAP 메모리 확인
+		# grep SwapTotal /proc/meminfo
+
+	tmp 디렉터리 사이즈 확인
+		# df -h /tmp
+	
+
+2. 호스트 설정 변경
+	2-1. 호스트 추가
+	vi /etc/hosts
+		192.168.214.135	oel19adg1
+	
+	2-2. hostname 설정
+		# hostnamectl set-hostname oel19adg1
+		
+	2-3. hostname 확인
+		# hostname
+
+
+3. vi /etc/sysctl.conf
+	# vi /etc/sysctl.conf
+		fs.file-max = 6815744
+		kernel.sem = 250 32000 100 128
+		kernel.shmmni = 4096
+		kernel.shmall = 1073741824 (또는 물리메모리 크기의 절반(byte))
+		kernel.shmmax = 4398046511104 (또는 물리메모리 크기의 절반(byte))
+		kernel.panic_on_oops = 1
+		net.core.rmem_default = 262144
+		net.core.rmem_max = 4194304
+		net.core.wmem_default = 262144
+		net.core.wmem_max = 1048576
+		net.ipv4.conf.all.rp_filter = 2
+		net.ipv4.conf.default.rp_filter = 2
+		fs.aio-max-nr = 1048576
+		net.ipv4.ip_local_port_range = 9000 65500
+		
+	위 값은 최소값으로 나의경우 물리메로리를 4GB로 할당했기 때문에 shmall, shmmax를 2,147,483,648(byte) 로 할당함
+	
+4.잘 입력되었는지 확인
+	# /sbin/sysctl -p
+	fs.file-max = 6815744
+	kernel.sem = 250 32000 100 128
+	kernel.shmmni = 4096
+	kernel.shmall = 2147483648
+	kernel.shmmax = 2147483648
+	kernel.panic_on_oops = 1
+	net.core.rmem_default = 262144
+	net.core.rmem_max = 4194304
+	net.core.wmem_default = 262144
+	net.core.wmem_max = 1048576
+	net.ipv4.conf.all.rp_filter = 2
+	net.ipv4.conf.default.rp_filter = 2
+	fs.aio-max-nr = 1048576
+	net.ipv4.ip_local_port_range = 9000 65500
+
+5. Shell Limits 설정(안되어있다면 수동삽입)
+	# vi /etc/security/limits.d/oracle-database-preinstall-19c.conf
+	oracle   soft   nofile    1024
+	oracle   hard   nofile    65536
+	oracle   soft   nproc    16384
+	oracle   hard   nproc    16384
+	oracle   soft   stack    10240
+	oracle   hard   stack    32768
+	oracle   hard   memlock    3865470566(HugePage 사용시 물리메모리의 90% 이상)
+	oracle   soft   memlock    3865470566(HugePage 사용시 물리메모리의 90% 이상)
+	
+	oracle   hard   memlock    134217728
+	oracle   soft   memlock    134217728
+	
+	memlock soft, hard의 경우 HugePage 사용시 물리메모리의 90% 이상을 할당해야함(나의경우 4GB이기 때문에 4GB의 90%인 3865470566(byte) 로 할당함)
+	
+6. selinux disable 설정
+	# vi /etc/selinux/config
+		SELINUX=disabled
+		
+7. selinux disable 설정 적용
+
+
+8. 불필요한 서비스 정지(ntp 설정을 했다면 chronyd 는 stop,disable,mv 하지 않아도됨)
+	#
+	systemctl stop firewalld
+	systemctl disable firewalld
+	 
+	systemctl stop bluetooth
+	systemctl disable bluetooth
+	 
+	systemctl stop chronyd
+	systemctl disable chronyd
+	mv /etc/chrony.conf /etc/chrony.conf.bak
+	 
+	systemctl stop ntpdate
+	systemctl disable ntpdate
+	 
+	systemctl stop avahi-daemon.socket
+	systemctl disable avahi-daemon.socket
+	 
+	systemctl stop avahi-daemon
+	systemctl disable avahi-daemon
+	 
+	systemctl stop libvirtd
+	systemctl disable libvirtd	
+	
+	systemctl stop cups
+	systemctl disable cups	
+	
+	
+9. 유저 및 그룹 생성(안되어있다면 수동생성)
+	# groupadd dba
+	# useradd -g dba -G dba oracle
+	
+10. 유저 및 그룹 수정(dnf preinstall 이용 자동 생성시)
+	# usermod -g dba -G dba oracle
+
+	
+	
+11. 디렉토리 생성및 권한부여 (안해도됨)
+	#
+	
+	mkdir -p /oracle/app/oracle/product/19.0.0.0/db_1
+	chmod -R 775 /oracle	
+	chown -R oracle:dba /oracle
+	
+	
+#	mkdir -p /oracle/oraInventory
+
+	// 아카이브 디렉토리 위치
+	mkdir -p /arc_str
+	chmod 775 -R /arc_str
+	chown -R oracle:dba /arc_str
+	
+12. /oracle/media 경로에 파일 업로드
+	# chown -R oracle:dba /oracle/media/
+	# ls -al /oracle/media/
+	total 5776568
+	drwxrwxr-x. 2 oracle dba        123 Mar 28 17:19 .
+	drwxrwxr-x. 5 oracle dba         50 Mar 28 17:17 ..
+	-rw-r--r--. 1 oracle dba 3059705302 Mar 28 17:19 LINUX.X64_193000_db_home.zip
+	-rw-r--r--. 1 oracle dba 2734496202 Mar 28 17:19 p32900083_190000_Linux-x86-64.zip
+	-rw-r--r--. 1 oracle dba  120998448 Mar 28 17:19 p6880880_190000_Linux-x86-64.zip
+	
+13. 오라클 계정설정 .bash_profile 아래 내용 추가 후 저장 
+	# su - oracle
+	$ vi .bash_profile 
+	#export ORACLE_HOSTNAME=oel19adg1
+	#export ORACLE_UNQNAME=ORAADG
+	export ORACLE_SID=ORAADG
+	
+	export ORACLE_BASE=/oracle/app/oracle;
+	export ORACLE_HOME=$ORACLE_BASE/product/19.0.0.0/db_1
+	
+	
+	export PATH=$ORACLE_HOME/bin:$PATH
+	export LD_LIBRARY_PATH=$ORACLE_HOME/lib:/lib:/usr/lib;
+	export CLASSPATH=$ORACLE_HOME/jlib:$ORACLE_HOME/rdbms/jlib;
+	
+	# export DISPLAY=192.168.137.1:0.0;
+	# export CV_ASSUME_DISTID=OEL7
+	 
+	alias ss='sqlplus / as sysdba'
+	
+	
+14. Oracle Database Preinstallation RPM(요구 패키지) 설치
+	# dnf install fontconfig-devel ksh libaio-devel libnsl
+
+	# dnf install make
+
+
+15. 재부팅 - OS 환경 적용
+
+16. 오라클 파일 전송
+	/home/oracle/media에 복사
+	
+17. Oracle 설치를 위해 한번만 사용시
+	./runinstaller 실행 수행
+	
+18. oracle 계정에서 실행	
+	# su - oracle
+	$ export CV_ASSUME_DISTID=OEL7
+	(* [INS-08101] Unexpected error while executing the action at state: 'supportedOSCheck'
+
+	root에서 
+	# xhost +
+	
+	oracle계정에서 
+	$ export DISPLAY=:0
+	
+	참고사항
+	환경 		| 값
+	Console	| :0
+	VNC		| :1
+	
+	$ export DISPLAY=:0
+	$ export DISPLAY=:1
+	
+	(2022/08/24 추가)
+
+	위 내용대로 했는데도 되지 않으면 아래와 같은 방법으로 해보자.
+
+	$ xdpyinfo -display :0
+	$ xdpyinfo -display :1
+
+
+
+
+ERROR libasmclntsh19.ohso libasmperl19.ohso client_sharedlib
+	https://datasyncxml.tistory.com/384
