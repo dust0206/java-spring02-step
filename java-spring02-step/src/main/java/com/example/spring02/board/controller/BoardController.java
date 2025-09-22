@@ -63,6 +63,40 @@ public class BoardController {
 		return mav;		// list.jsp 로 List가 전달됨
 	}
 	
+	@RequestMapping("board/list2.do")	// /board/list.do
+	// @RequestParam(defaultValue="title") - 기본값 할당
+	public ModelAndView list2(Model model, @RequestParam(defaultValue = "title") String search_option, @RequestParam(defaultValue="") String keyword) throws Exception {
+		log.info("# list() #");
+		// 레코드 갯수 계산
+		int count = boardService.countArticle(search_option, keyword);
+		
+		List<BoardVO> list = boardService.listAll(search_option, keyword);
+		
+//		model.addAttribute("list", list);
+//		return "list";
+		
+		// 모델과 뷰
+		ModelAndView mav = new ModelAndView();
+		mav.setViewName("board/list2");	// 뷰를 list.jsp로 설정
+		/* 데이터를 map을 넘길때 */
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("list",list);
+		map.put("count", count);
+		map.put("search_option", search_option);
+		map.put("keyword", keyword);
+		mav.addObject("map", map);	// map으로 데이터 저장
+		
+		
+		/*
+	  	데이터를 하나씩 넘길때
+		mav.addObject("list", list);	// 데이터 저장
+		mav.addObject("count", count);	// 데이터 카운트
+		mav.addObject("search_option",search_option);
+		mav.addObject("keyword",keyword);
+		 */	
+		return mav;		// list.jsp 로 List가 전달됨
+	}
+	
 	// @RequestMapping("board/write.do") - 기본은 RequestMethod.GET 방식이고
 	// value="url이름", method="전송방식"
 	@RequestMapping(value="board/write.do", method=RequestMethod.GET)
