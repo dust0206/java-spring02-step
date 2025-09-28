@@ -1,0 +1,394 @@
+http://www.chlux.co.kr/bbs/board.php?bo_table=board02&wr_id=87
+
+yum list update
+https://soonmin.tistory.com/94
+
+
+
+https://blog.naver.com/hanajava/222393939579
+https://m.blog.naver.com/alice_k106?categoryNo=24&tab=1
+https://m.blog.naver.com/hanajava/222286454574
+
+- Setup (2 Node 구성)
+
+ 0. 공통 사항
+
+ 0.1. 방화벽&SElinux disable로 변경  [양쪽]
+	vi /etc/sysconfig/selinux
+	SELINUX=disabled	
+	
+	# setenforce 0
+	# getenforce
+	
+	# systemctl status firewalld
+	# systemctl stop firewalld
+	
+0.2. /etc/hosts파일 설정  [양쪽]
+	 192.168.214.21 linux-node71
+	192.168.214.22 linux-node72
+
+	/etc/hosts파일 확인
+	ping linux-node71
+	ping linux-node72
+
+ 1.3. yum repolist 확인  [양쪽]
+ 
+		pacemaker, pcs, corosync
+ 
+	yum install pacemaker pcs corosync
+	
+ 2.1. cluster 계정 패스워드 등록  [양쪽]
+	# passwd hacluster
+
+ 2.2. pcs daemon 시작  [양쪽]
+	# systemctl start pcsd.service
+		( pcsd : pacemaker/corosync 설정, 관리 daemon)
+		
+2.2. pcs daemon 확인  [양쪽]
+	# systemctl status pcsd.service
+		
+ 2.2.1 pcsd 시작시 daemon 시작 [양쪽]
+	# systemctl enable pcsd.service
+		
+ 2.3. 각 노드 인증 [한쪽]
+	# pcs cluster auth linux-node71 linux-node72 -u hacluster -p hacluster!
+	
+  2.4. 클러스터 구성 [한쪽]
+  # pcs cluster setup  --name ace_cluster linux-node71 linux-node72 
+ 
+ 
+  2.5. 클러스터 시작 [한쪽]
+  # pcs cluster start --all
+  (* pacemaker.service, corosync.service daemon도 같이 up)
+
+
+ 2.6 클러스터 상태 확인
+	# pcs status
+	(- Online: [ linux-node71 linux-node72] : online상태로 확인이 되었다면 클러스터에 2 node가 등록)
+	 
+  
+  2.5.1 부팅시 pacemaker와 corosync시작을 위해 두 호스트의 서비스를 활성화
+  # systemctl enable corosync.service
+  # systemctl enable pacemaker.service
+
+  
+	 
+5. 클러스터 통신을 확인이
+	# crm_verify -L -V
+	error: Resource start-up disabled since no STONITH resources have been defined
+	error: Either configure some or disable STONITH with the stonith-enabled option
+	error: NOTE: Clusters with shared data need STONITH to ensure data integrity
+	error: CIB did not pass schema validation
+	Errors found during check: config not valid
+	
+ - 리소스 등록 시 fence device 작동 방지   
+     # pcs property set stonith-enabled=false	
+
+ 
+	등록
+	pcs resource create adc_clusterIP ocf:heartbeat:IPaddr2 ip=192.168.214.120 --group apachegroup
+	pcs resource create mysql systemd:mysql.service op monitor interval=10s 
+	pcs resource create mysql ocf:heartbeat:mysql  --group group1
+	pcs resource create mysqld ocf:heartbeat:mysql  --group group2
+	
+	resource 삭제 
+	 pcs resource delete mysql
+
+	감시 등록리스트 확인
+	pcs resource providers
+	
+	
+	pcs resource agents ocf:heartbeat
+
+	pcs resource describe 에이전트명	
+
+	
+	ocf 리스트 확인
+	pcs resoucre list   
+	
+	ocf 리스트 상세 확인 (parameter값 default 확인)
+	
+	
+	
+	resource 리스트 보기
+	pcs resource show
+	
+	resource 서비스 이동하게
+	pcs resource move mysql
+	
+	서비스 등록 방법
+	https://blog.naver.com/hanajava/222882673612
+	
+
+
+
+
+
+
+
+
+
+
+2.7. cluster 기본 셋팅
+   - 장애 처리 후 리소스 이동 방지 설정
+     # pcs property set default-resource-stickiness=100
+
+   - 리소스 등록이 끝나게 되면 fence device 작동 할 수 있도록 변경  
+     # pcs property set stonith-enabled=true
+   - 2 node 구성 할 시 일반적으로 quorum 설정을 disable
+     # pcs property set no-quorum-policy=ignore
+   - 셋팅 확인
+     # pcs property show 
+	 
+	 
+	
+
+
+
+
+	
+ 3. Service(Application) 확인
+  - HA Cluster에 등록 될 수 있는 Service(Application) 확인
+  ex) Oracle DB, Mysql, 기타 등등..
+ 
+ 4. Constraint 설정
+  - 리소스의 위치나 순서, 동거 조건을 제약하는 설정
+  # pcs status
+
+
+https://jeongyd.tistory.com/104
+
+	5. 클러스터 통신을 확인이
+	# corosync-cfgtool -s
+	
+	멤버쉽과 쿼럼을 확인이
+	# corosync-cmapctl | egrep -i members
+	
+	corosync 상태 확인이
+	# pcs status corosync
+	
+	클러스터 상태 확인
+	# pcs status
+	
+	6. Active / Passive 클러스터 생성
+	클러스터 설정을 변경하기 전에 아래처럼 crm_verify 명령어로 유효성을 확인해두는 것이 좋다
+	STONITH 부분에서 오류가 발생한다
+	
+	# crm_verify -L -V
+	error: Resource start-up disabled since no STONITH resources have been defined
+	error: Either configure some or disable STONITH with the stonith-enabled option
+	error: NOTE: Clusters with shared data need STONITH to ensure data integrity
+	error: CIB did not pass schema validation
+	Errors found during check: config not valid
+	
+	데이타의 무결성을 확보하기 위해 기본적으로 STONITH가 활성화 되어 있는데 이것을 비활성화 하고
+	다시 확인해 보면 아무런 오류가 발생하지 않는다
+	
+	# pcs property set stonith-enabled=false
+	# crm_verify -L -V
+
+	7. 가상 IP 리소스 생성된
+	가상 아이피를 리소스로 추가 가상IP는 노드가 다운되면 다른 노드로 이동하여 실제로 서비스에 이용되는 IP 주소로 이용되는
+	
+	 pcs resource create VirtualIP IPaddr2 ip=192.168.0.99 \
+               cidr_netmask=32 nic=eth2 op monitor interval=30s
+	ex) pcs resource create <Resource Name> ocf:heartbeat:IPaddr2 ip=192.168.1.4 cidr_netmask=27 op monitor interval=30s
+	# pcs resouce create VirtualIP IPaddr2 ip=192.168.214.120 cidr_netmask=24 nic=eth2 op monitor interval=30s
+	위에서추가한 리소스 VirtualIP는 세 부분 ocf:heartbeat:IPaddr2 의 형태로 부분했다.
+	여기서, 첫번째 필드는 resource standard, 두번째 필드는 표준에 따라 다르며 세번째 필드는 리소스 스크립트의 이름이다
+	
+	가상 IP 삭제
+	#  pcs  resource delete VirtualIP
+	
+	노드 삭제
+	 # pcs cluster node remove <node_name>
+
+	# Failover test
+	
+	node1 cluster stop
+	# pcs cluster stop node1
+	
+	node1 cluster start
+	# pcs cluster start node1
+	
+	# pcs status [node1] - error 발생
+		Error: error running crm_mon, is pacemaker running?
+	crm_mon: Connection to cluster failed: Connection refused
+
+	# pcs status [node2에서 상태 확인]
+		Node List:
+		  * Online: [ node2 ] 
+		  * OFFLINE: [ node1 ] - offline으로 표시
+
+	node1에 다시 cluster start
+	# pcs cluster start node1
+	# pcs status
+
+
+https://codingschool.tistory.com/15
+
+	5. Virtual IP
+	이제 생성된 Cluster에 가상 IP를 추가합니다. Virtual IP는 실제로 클라이언트가 접속하는 서비스 IP로 A,B서버중 1대에만 할당이 됩니다.
+	# pcs resource create <Resource Name> ocf:heartbeat:IPaddr2 ip=192.168.1.4 cidr_netmask=27 op monitor interval=30s
+	
+	가상 IP가 여러개인 경우 Resource Name을 달리하여 추가 가능합니다.
+	
+	6. Service 추가
+	paceMaker는 Active상태일 때 기동해야할 서비스 프로세스들을 지정할 수 있습니다. 아래와 같이 리소스명과 서비스명을 지정합니다. 원하는 프로세스를 미리 system demon으로 등록해두어야 합니다.
+	
+	#pcs resource create <ResourceName> systemd:<service name>
+
+	ex) pcs resource create MyServer systemd:mydemon
+
+	
+	7. Auto Failback
+	Failover후에 장애가 발생한 서비스를 복구시 자동으로 복구된 서버로 리소스가 이동하게 됩니다. 
+	서비스 운영중에 이와 같은 상황이 발생하면 장애 상황이 발생하기 때문에 필요한 경우 막는게 좋습니다.
+	생성된 리소스별로 전부 입력해야 합니다.
+	
+	# pcs resource update <Resource Name> meta resource-stickiness=INFINITY
+	
+	8. 상태확인
+	cluster가 올바르게 동작중인지 확인할 수 있습니다.
+	
+	현재 Cluster상태를 확인한다.
+
+	[root@BizParseA ~]# pcs status
+	Cluster name: ha_cluster
+	Stack: corosync
+	Current DC: ServerA.localdomain (version 1.1.23-1.el7-9acf116022) - partition with quorum
+	Last updated: Wed Dec  9 15:38:42 2020
+	Last change: Wed Dec  9 14:55:20 2020 by root via cibadmin on ServerB.localdomain
+
+	2 nodes configured
+	3 resource instances configured
+	
+	
+	9. Cluster Test
+	이제 FailOver가 정상적으로 동작하는지 시험해 봅니다. 
+	우선 명령어를 사용하새 현재 Active인 서버를 Standby모드로 변경할 수있습니다.
+	
+	# pcs cluster standby ServerA.localdomain
+	
+	A서버가 Active가 되면 Standby상태였던 B서버가 Active가 됩니다. pcs status명령으로 확인후 서비스가 정상적으로 동작하는지 직접 확인하시면 됩니다. 
+	상태 확인후 다시 A서버로 돌리려면 아래 명령을 사용할 수 있습니다.
+	
+	# pcs cluster unstandby ServerA.localdomain
+	
+	
+	
+	
+	
+	
+	
+	
+	
+  
+   - 리소스 등록 후 기본 위치는 위의 사진과 같이 중구난방으로 위치하게 된다.
+  - 리소스 조건을 정의하지 않으면 failover시 어떠한 에러가 발생할 지 모른다.
+  - 그러므로 리소스들을 한데 뭉쳐 그룹화 하거나 constraint 설정을 하여야 한다.
+  
+  4.1. 리소스 위치 제약 조건 
+    - 기본 포맷 
+      # pcs constraint location <resource-name> prefers <node[=score]>
+       - 어떤 리소스가 어떤 노드에서 실행 될 것인지 결정
+       - score의 기본 값은 INFINITY
+      # pcs constraint location <resource-name> avoids <node[=score]>
+       - 어떤 리소스가 어떤 노드에서 실행 되지 말아야 하는지 결정
+       - score는 마찬가지로 기본 값은 INFINITY
+ 
+   4.2. 리소스 순서 제약 조건
+     - 기본 포맷
+       # pcs constraint order start <first-resource-name> then <second-resource-name>
+         - 어떤 리소스가 먼저 시작되고 늦게 시작 될 것인지 결정
+      
+      ex) 위 사진과 같이 리소스들이 그룹으로 되지 않았다면 order 조건으로 순서를 결정해 주어야 한다.
+          failover 시 node2에서 vip up, filesystem up, mysql_service up 순으로 결정한다면
+          # pcs constraint order start vip then mysqlfs
+          # pcs constraint order start mysqlfs then mysql_service
+          - 이와 같이 순서를 정의 
+          - 이미 그룹으로 리소스들을 한데 묶었다면 진행을 하지 않아도 무방 
+ 
+    4.3. 리소스 동거 제약 조건
+     - 기본 포맷 
+        # pcs constraint colocation add <resource-name> with <resource-name> [score]
+         - 어떤 리소스와 함께 있어야 하는지 결정
+   
+ 
+ 5. Failover 기본 순서
+  node1) Service down -> Filesystem umount(Shared Volume) -> VIP down 
+  ndoe2) VIP up -> Filesystem(Shared Volume) mount -> Service up
+
+# 기타 명령어 모음
+	- 
+	pcs cluster destroy
+
+ 
+ 
+HA 구성 후 운영 메뉴얼
+- http://www.chlux.co.kr/bbs/board.php?bo_table=board02&wr_id=90&sca=OS
+
+
+참고자료
+ https://m.blog.naver.com/hanajava/222286454574
+ 
+  pcs resource create adc_clusterIP ocf:heartbeat:IPaddr2 ip=192.168.214.120 --group apachegroup
+  pcs resource create WebSite ocf:heartbeat:apache configfile=/etc/httpd/conf/httpd.conf statusurl="http://localhost/server-status" apachegroup
+ 
+  pcs resource create VirtualIP ocf:heartbeat:IPaddr2 ip=192.168.0.99 cidr_netmask=32 nic=eth2 op monitor interval=30s
+  
+  pcs resource create website ocf:heartbeat:apache configfile=/etc/httpd/conf/httpd.conf  statusurl="http://localhost/server-status"  op monitor interval=30s
+  
+  pcs resource create WebSite ocf:heartbeat:apache configfile=/etc/httpd/conf/httpd.conf  statusurl="http://localhost/server-status"  op monitor interval=1min
+ 
+ pcs resource create apache ocf:heartbeat:apache configfile="/etc/httpd/conf/httpd.conf" statusurl="http://127.0.0.1/server-status"
+
+ pcs resource create Website apache configfile="/etc/httpd/conf/httpd.conf" statusurl="http://127.0.0.1/server-status" --group apachegrp
+Assumed agent name '' (deduced from 'apache')
+
+
+pcs resource create ClusterIP1 ocf:heartbeat:IPaddr2 ip=http://192.168.214.120/ op monitor interval=30s --group=apachegroup
+pcs resource create website ocf:heartbeat:apache configfile=/etc/httpd/conf/httpd.conf statusurl="http://localhost/server-status" --group apachegroup
+pcs status
+
+
+pcs resource create VirtualIP ocf:heartbeat:IPaddr2 ip=http://192.168.214.120/ cidr_netmask=27 op monitor interval=30s 
+
+
+pcs constraint location cluster_vip prefers ha1-hb=500 
+pcs constraint location apachegroup prefers node2=1
+
+pcs resource create mysql systemd:mysql.service op monitor interval=10s
+
+pcs cluster stop --all
+pcs cluster start --all 
+
+pcs cluster standby node1
+
+[resources 통합]
+​[root@pcs-test-001 ~]# pcs constraint colocation add webserver Virtual_IP INFINITY
+
+[설정값 확인​]
+[root@pcs-test-001 ~]# pcs constraint order Virtual_IP then webserver
+[root@pcs-test-001 ~]# pcs constraint order adc_clusterIP then WebSite
+
+
+pcs constraint colocation add WebSite adc_clusterIP INFINITY
+
+ 2.7. cluster 기본 셋팅
+
+   - 장애 처리 후 리소스 이동 방지 설정
+     # pcs property set default-resource-stickiness=100
+	 # pcs resource defaults update resource-stickiness=1
+
+   - 리소스 등록 시 fence device 작동 방지   
+     # pcs property set stonith-enabled=false
+
+   - 리소스 등록이 끝나게 되면 fence device 작동 할 수 있도록 변경  
+     # pcs property set stonith-enabled=true
+
+   - 2 node 구성 할 시 일반적으로 quorum 설정을 disable
+     # pcs property set no-quorum-policy=ignore
+
+   - 셋팅 확인
+     # pcs property show 
