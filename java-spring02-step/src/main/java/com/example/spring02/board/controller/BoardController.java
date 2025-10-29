@@ -9,12 +9,15 @@ import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.example.spring02.board.model.dto.BoardVO;
@@ -176,5 +179,24 @@ public class BoardController {
 		
 		// 페이지 이동
 		return "redirect:list.do";
+	}
+	
+	// xml --> <no>10</no><title>게시판입니다</title>
+	// JSON --> { no:10, title:"게시판입니다"
+	// produces = {MediaType.APPLICATION_JSON_UTF8_VALUE,MediaType.APPLICATION_XML_VALUE}	--> JSON 데이터와 XML 데이터 모두 지원
+	
+	@ResponseBody
+//	@RequestMapping("board/getVO")
+	@GetMapping(value="board/getVO", 
+			produces = {MediaType.APPLICATION_JSON_UTF8_VALUE,MediaType.APPLICATION_XML_VALUE})
+	public BoardVO getVO() throws Exception {
+//	public List<BoardVO> getVO() throws Exception {
+		BoardVO vo = new BoardVO();
+		vo.setBno(10);
+		vo.setTitle("게시판입니다.");
+//		List<BoardVO> list = boardService.listAll("title","제목");
+		
+		return vo;
+//		return list;
 	}
 }
